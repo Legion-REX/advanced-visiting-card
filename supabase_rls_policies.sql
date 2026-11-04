@@ -1,22 +1,49 @@
--- Supabase Row Level Security (RLS) Policies for BIO Website SaaS
--- Run this in your Supabase SQL Editor to fix [SEC-002]
+-- ========================================================
+-- SUPABASE COMPLETE SETUP SCRIPT FOR ADVANCED VISITING CARD
+-- ========================================================
+-- Is poore code ko copy karke Supabase -> SQL Editor me Run karein.
 
--- Enable RLS on the customers table
-ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+-- 1. Customers table banayein (agar pehle se nahi bani hai)
+CREATE TABLE IF NOT EXISTS public.customers (
+    id TEXT PRIMARY KEY,
+    business_name TEXT,
+    phone TEXT,
+    email TEXT,
+    data JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
 
--- 1. Public can read only ACTIVE customers with limited fields (No sensitive data)
-CREATE POLICY "Public profiles are viewable by everyone"
-ON customers FOR SELECT
-USING ( status = 'active' );
+-- 2. Row Level Security (RLS) enable karein
+ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
 
--- 2. Customers can read and update their own full records based on Auth UID
-CREATE POLICY "Users can update their own profiles"
-ON customers FOR UPDATE
-USING ( auth.uid()::text = id )
-WITH CHECK ( auth.uid()::text = id );
+-- 3. Purani policies drop karein taaki koi conflict ya error na aaye
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.customers;
+DROP POLICY IF EXISTS "Users can update their own profiles" ON public.customers;
+DROP POLICY IF EXISTS "Super Admins can do everything" ON public.customers;
+DROP POLICY IF EXISTS "Allow public read access" ON public.customers;
+DROP POLICY IF EXISTS "Allow public insert and upsert" ON public.customers;
+DROP POLICY IF EXISTS "Allow public update" ON public.customers;
+DROP POLICY IF EXISTS "Allow public delete" ON public.customers;
 
--- 3. Super Admins can read, insert, update, delete ALL records
--- Requires setting up custom claims or an admin role table
-CREATE POLICY "Super Admins can do everything"
-ON customers FOR ALL
-USING ( (SELECT role FROM users WHERE id = auth.uid()) = 'admin' );
+-- 4. Policies create karein (Visiting cards public read aur app dwara sync hone ke liye)
+
+-- A) Public Read: Har koi digital visiting card dekh sake
+CREATE POLICY "Allow public read access"
+ON public.customers FOR SELECT
+USING (true);
+
+-- B) Insert/Upsert: Naye cards app se cloud me save ho sakein
+CREATE POLICY "Allow public insert and upsert"
+ON public.customers FOR INSERT
+WITH CHECK (true);
+
+-- C) Update: Customer apne card ko edit/update kar sake
+CREATE POLICY "Allow public update"
+ON public.customers FOR UPDATE
+USING (true)
+WITH CHECK (true);
+
+-- D) Delete: Cards delete karne ke liye
+CREATE POLICY "Allow public delete"
+ON public.customers FOR DELETE
+USING (true);
