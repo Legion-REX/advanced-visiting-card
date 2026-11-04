@@ -7,7 +7,8 @@ import {
   Menu,
   X,
   Sparkles,
-  Store
+  Store,
+  ShieldAlert
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -21,6 +22,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   theme,
   onToggleTheme,
   onOpenAuth,
+  onOpenAdmin,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -107,6 +109,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>Customer Login</span>
           </button>
 
+          {/* Super Admin Access Button */}
+          {onOpenAdmin && (
+            <button
+              onClick={onOpenAdmin}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass-card text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold hover:scale-105 active:scale-95 transition-all border border-slate-200/80 dark:border-white/10"
+              title="Super Admin Panel (PIN: 8287)"
+            >
+              <ShieldAlert className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" />
+              <span>Admin</span>
+            </button>
+          )}
+
           {/* Get Started / Sign Up */}
           <button
             onClick={() => onOpenAuth('signup')}
@@ -186,6 +200,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               Create Mini Website
             </button>
+
+            {onOpenAdmin && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAdmin();
+                }}
+                className="w-full py-2.5 rounded-xl glass-card text-center text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-center justify-center gap-1.5 border border-rose-500/20"
+              >
+                <ShieldAlert className="w-4 h-4 text-rose-500" />
+                <span>Super Admin Portal</span>
+              </button>
+            )}
           </div>
         </div>
       )}

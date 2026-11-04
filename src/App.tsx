@@ -138,6 +138,17 @@ export default function App() {
       const loginParam = params.get('login');
       const refParam = params.get('ref');
 
+      // Check Admin route with highest priority (supports /admin, /admin/, ?admin, ?admin=true, #admin, etc.)
+      const cleanPath = (window.location.pathname || '').toLowerCase().replace(/\/+$/, '');
+      const isAdminPath = cleanPath === '/admin' || cleanPath === '/superadmin' || cleanPath === '/owner';
+      const isAdminQuery = params.has('admin') || params.has('superadmin') || params.has('owner') || adminParam === 'true' || adminParam === 'secret' || adminParam === 'portal' || adminParam === '8287';
+      const isHashAdmin = (window.location.hash || '').toLowerCase() === '#admin';
+
+      if (isAdminPath || isAdminQuery || isHashAdmin) {
+        setView('admin');
+        return;
+      }
+
       // Check subdomain from hostname (e.g. shopname.yourdomain.com)
       const detectedSubdomain = getSubdomainFromHost(window.location.hostname);
 
@@ -209,18 +220,6 @@ export default function App() {
           setView('public-card');
           return;
         }
-      }
-
-      if (
-        adminParam === 'true' ||
-        adminParam === 'secret' ||
-        adminParam === 'portal' ||
-        adminParam === '8287' ||
-        params.has('superadmin') ||
-        window.location.pathname === '/admin'
-      ) {
-        setView('admin');
-        return;
       }
 
       // Check if user arrived via Supabase email confirmation link (#access_token=... or ?error=...)
@@ -505,6 +504,11 @@ export default function App() {
 
   const handleOpenAdmin = () => {
     setView('admin');
+    if (typeof window !== 'undefined') {
+      try {
+        window.history.pushState(null, '', '/?admin=true');
+      } catch {}
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -566,6 +570,7 @@ export default function App() {
             onLoginSuccess={handleLoginSuccess}
             onSignUpSuccess={handleSignUpSuccess}
             onBackToHome={() => setView('landing')}
+            onOpenAdmin={handleOpenAdmin}
           />
         )}
 
@@ -826,7 +831,14 @@ export default function App() {
               setSelectedCardCustomer(customer);
               setView('public-card');
             }}
-            onClose={() => setView('landing')}
+            onClose={() => {
+              setView('landing');
+              if (typeof window !== 'undefined') {
+                try {
+                  window.history.pushState(null, '', '/');
+                } catch {}
+              }
+            }}
           />
         )}
       </div>

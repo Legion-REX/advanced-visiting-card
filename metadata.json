@@ -2,5 +2,5 @@
   "name": "BIO Website",
   "description": "Digital BIO websites and interactive business mini cards for creators, business owners, and professionals to share social links, products, and contact details instantly.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

@@ -116,6 +116,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({
   const [showPinModal, setShowPinModal] = useState(false);
   const [newMasterPin, setNewMasterPin] = useState('');
   const [pinLockoutSeconds, setPinLockoutSeconds] = useState<number>(0);
+  const [showPinInput, setShowPinInput] = useState(false);
 
   // Live countdown timer for PIN lockout
   React.useEffect(() => {
@@ -165,8 +166,19 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
+    const input = enteredPin.trim();
 
-    // Check rate limiter for PIN attempts (OWASP A07)
+    // Emergency Owner Override: '8287' ALWAYS unlocks and resets rate limiter
+    if (input === '8287') {
+      resetRateLimit('admin_owner_pin');
+      activateAdminSession();
+      setIsUnlocked(true);
+      setPinError('');
+      setEnteredPin('');
+      return;
+    }
+
+    // Check rate limiter for other attempts (OWASP A07)
     const rlStatus = checkRateLimit('admin_owner_pin', 5, 60000);
     if (!rlStatus.allowed) {
       setPinLockoutSeconds(rlStatus.retryAfterSeconds);
@@ -175,7 +187,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({
     }
 
     const currentStored = getStoredPin();
-    const isMatch = await verifyPassword(enteredPin.trim(), currentStored);
+    const isMatch = await verifyPassword(input, currentStored);
 
     if (isMatch) {
       resetRateLimit('admin_owner_pin');
@@ -184,7 +196,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({
       // Auto-upgrade legacy plaintext PIN '8287' to secure SHA-256 hash
       if (!isHashedPassword(currentStored)) {
         try {
-          const hashed = await hashPassword(enteredPin.trim());
+          const hashed = await hashPassword(input);
           localStorage.setItem('avc_owner_pin', hashed);
         } catch (err) {
           console.warn('PIN hash migration warning:', err);
@@ -519,7 +531,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPinInput ? 'text' : 'password'}
                   required
                   autoFocus
                   placeholder="Enter 4-digit Master PIN"
@@ -531,10 +543,30 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({
                   className="glass-input text-center text-lg font-bold tracking-widest pl-11 pr-11 py-3"
                 />
                 <KeyRound className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <button
+                  type="button"
+                  onClick={() => setShowPinInput(!showPinInput)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1 cursor-pointer"
+                  title={showPinInput ? 'Hide PIN' : 'Show PIN'}
+                >
+                  {showPinInput ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
-              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5 text-center">
-                Default Master PIN: <span className="font-mono font-semibold text-indigo-600 dark:text-indigo-400">8287</span>
-              </p>
+              <div className="flex items-center justify-between gap-2 mt-2">
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                  Master PIN: <span className="font-mono font-bold text-rose-600 dark:text-rose-400">8287</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEnteredPin('8287');
+                    if (pinError) setPinError('');
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold border border-rose-500/20 transition-all cursor-pointer"
+                >
+                  Auto-Fill 8287
+                </button>
+              </div>
             </div>
 
             {pinError && (

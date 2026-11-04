@@ -51,6 +51,14 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAuth, onOpenAdmin }) => {
           >
             Create Card
           </button>
+          <button
+            onClick={onOpenAdmin}
+            className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1 font-semibold text-rose-600 dark:text-rose-400"
+            title="Super Admin Portal (PIN: 8287)"
+          >
+            <Lock className="w-3 h-3 text-rose-500" />
+            <span>Super Admin</span>
+          </button>
         </div>
 
         <div className="flex items-center gap-2 text-slate-400 text-[11px] text-center md:text-right">

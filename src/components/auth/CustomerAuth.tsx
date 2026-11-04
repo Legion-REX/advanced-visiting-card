@@ -41,6 +41,7 @@ interface CustomerAuthProps {
   onSignUpSuccess: (newCustomer: Customer) => void;
   onBackToHome: () => void;
   initialMode?: 'login' | 'signup';
+  onOpenAdmin?: () => void;
 }
 
 export const CustomerAuth: React.FC<CustomerAuthProps> = ({
@@ -49,6 +50,7 @@ export const CustomerAuth: React.FC<CustomerAuthProps> = ({
   onSignUpSuccess,
   onBackToHome,
   initialMode = 'signup',
+  onOpenAdmin,
 }) => {
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -898,6 +900,20 @@ export const CustomerAuth: React.FC<CustomerAuthProps> = ({
                 </button>
               </div>
             </form>
+          )}
+
+          {/* Super Admin Direct Gateway */}
+          {onOpenAdmin && (
+            <div className="pt-5 mt-4 border-t border-slate-200/60 dark:border-white/10 text-center">
+              <button
+                type="button"
+                onClick={onOpenAdmin}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                <ShieldCheck className="w-4 h-4 text-rose-500" />
+                <span>Platform Owner? Access Super Admin Panel (PIN: 8287)</span>
+              </button>
+            </div>
           )}
         </div>
       </div>
